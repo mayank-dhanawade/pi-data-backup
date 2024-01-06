@@ -1,4 +1,5 @@
 import subprocess
+import shutil
 
 def get_connected_drives():
     connected_drives = set()
@@ -19,8 +20,24 @@ def get_connected_drives():
 
     return list(connected_drives)
 
+def get_drive_storage(drives):
+    drive_storage_info = []
+    for drive_info in drives:
+        try:
+            usage = shutil.disk_usage(drive_info[1])
+            drive_storage_info.append((drive_info[0], drive_info[1], usage.total))
+        except Exception as e:
+            print(f"Error getting disk usage for {drive_info[1]}: {e}")
+
+    return drive_storage_info
+
 # Example usage
 connected_drives = get_connected_drives()
 print("Connected USB drives:")
 for drive_info in connected_drives:
     print(drive_info)
+
+drive_storage_info = get_drive_storage(connected_drives)
+print("Storage information for each connected USB drive:")
+for drive_info in drive_storage_info:
+    print(f"Drive: {drive_info[0]}, Mount Point: {drive_info[1]}, Total Storage: {drive_info[2] / (1024 ** 3):.2f} GB")
