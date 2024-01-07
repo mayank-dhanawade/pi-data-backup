@@ -60,6 +60,21 @@ def create_card_folder(spiti_folder_path):
     except Exception as e:
         print(f"Error creating folder '{new_card_folder}': {e}")
 
+    return new_card_folder_path
+
+def copy_data_to_card_folder(source_drive, card_folder_path):
+    try:
+        if os.path.exists(card_folder_path):
+            print(f"Folder '{os.path.basename(card_folder_path)}' already exists. Removing it.")
+            shutil.rmtree(card_folder_path)
+
+        shutil.copytree(source_drive, card_folder_path)
+        print(f"Data copied successfully to {card_folder_path}")
+    except Exception as e:
+        print(f"Error copying data: {e}")
+
+
+
 # Example usage
 connected_drives = get_connected_drives()
 print("Connected USB drives:")
@@ -71,12 +86,16 @@ print("Storage information for each connected USB drive:")
 for drive_info in drive_storage_info:
     print(f"Drive: {drive_info[0]}, Mount Point: {drive_info[1]}, Total Storage: {drive_info[2] / (1024 ** 3):.2f} GB")
 
-# Find the drive with the largest storage
+# Find the drives with the largest and smallest storage
 largest_drive_info = max(drive_storage_info, key=lambda x: x[2])
+smallest_drive_info = min(drive_storage_info, key=lambda x: x[2])
 
 # Create 'spiti' folder in the drive with the largest storage
 create_spiti_folder(largest_drive_info)
 
 # Create 'card-{number}' folder inside 'spiti'
 spiti_folder_path = os.path.join(largest_drive_info[1], 'spiti')
-create_card_folder(spiti_folder_path)
+card_folder_path = create_card_folder(spiti_folder_path)
+
+# Copy data from the drive with smaller storage to the 'card' folder
+copy_data_to_card_folder(smallest_drive_info[1], card_folder_path)
