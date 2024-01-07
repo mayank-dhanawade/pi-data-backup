@@ -1,5 +1,6 @@
 import subprocess
 import shutil
+import os
 
 def get_connected_drives():
     connected_drives = set()
@@ -31,6 +32,15 @@ def get_drive_storage(drives):
 
     return drive_storage_info
 
+def create_spiti_folder(drive_info):
+    spiti_folder_path = os.path.join(drive_info[1], 'spiti')
+
+    try:
+        os.makedirs(spiti_folder_path, exist_ok=True)
+        print(f"Folder 'spiti' created successfully at {spiti_folder_path}")
+    except Exception as e:
+        print(f"Error creating folder 'spiti': {e}")
+
 # Example usage
 connected_drives = get_connected_drives()
 print("Connected USB drives:")
@@ -41,3 +51,9 @@ drive_storage_info = get_drive_storage(connected_drives)
 print("Storage information for each connected USB drive:")
 for drive_info in drive_storage_info:
     print(f"Drive: {drive_info[0]}, Mount Point: {drive_info[1]}, Total Storage: {drive_info[2] / (1024 ** 3):.2f} GB")
+
+# Find the drive with the largest storage
+largest_drive_info = max(drive_storage_info, key=lambda x: x[2])
+
+# Create 'spiti' folder in the drive with the largest storage
+create_spiti_folder(largest_drive_info)
