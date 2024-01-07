@@ -41,6 +41,25 @@ def create_spiti_folder(drive_info):
     except Exception as e:
         print(f"Error creating folder 'spiti': {e}")
 
+def create_card_folder(spiti_folder_path):
+    # Find the last created card folder
+    existing_card_folders = [folder for folder in os.listdir(spiti_folder_path) if folder.startswith('card-')]
+    existing_card_numbers = [int(folder.split('-')[1]) for folder in existing_card_folders]
+
+    if existing_card_numbers:
+        next_card_number = max(existing_card_numbers) + 1
+    else:
+        next_card_number = 1
+
+    new_card_folder = f"card-{next_card_number}"
+    new_card_folder_path = os.path.join(spiti_folder_path, new_card_folder)
+
+    try:
+        os.makedirs(new_card_folder_path, exist_ok=True)
+        print(f"Folder '{new_card_folder}' created successfully at {new_card_folder_path}")
+    except Exception as e:
+        print(f"Error creating folder '{new_card_folder}': {e}")
+
 # Example usage
 connected_drives = get_connected_drives()
 print("Connected USB drives:")
@@ -57,3 +76,7 @@ largest_drive_info = max(drive_storage_info, key=lambda x: x[2])
 
 # Create 'spiti' folder in the drive with the largest storage
 create_spiti_folder(largest_drive_info)
+
+# Create 'card-{number}' folder inside 'spiti'
+spiti_folder_path = os.path.join(largest_drive_info[1], 'spiti')
+create_card_folder(spiti_folder_path)
