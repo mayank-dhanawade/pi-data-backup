@@ -66,7 +66,7 @@ def rsync_copy_data(source_drive, destination_folder):
     start_time = time.time()
 
     try:
-        subprocess.run(['rsync', '-a', '--info=progress2 --sockopts=SO_SNDBUF=8192,SO_RCVBUF=8192 --parallel=4', source_drive + '/', destination_folder])
+        subprocess.run(['rsync', '-a', '--info=progress2', source_drive + '/', destination_folder])
         print(f"Data copied successfully to {destination_folder}")
 
         end_time = time.time()
