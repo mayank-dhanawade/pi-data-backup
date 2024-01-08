@@ -1,6 +1,7 @@
 import subprocess
 import shutil
 import os
+import time
 
 def get_connected_drives():
     connected_drives = set()
@@ -63,6 +64,8 @@ def create_card_folder(spiti_folder_path):
     return new_card_folder_path
 
 def copy_data_to_card_folder(source_drive, card_folder_path):
+    start_time = time.time()
+
     try:
         if os.path.exists(card_folder_path):
             print(f"Folder '{os.path.basename(card_folder_path)}' already exists. Removing it.")
@@ -70,9 +73,12 @@ def copy_data_to_card_folder(source_drive, card_folder_path):
 
         shutil.copytree(source_drive, card_folder_path)
         print(f"Data copied successfully to {card_folder_path}")
+
+        end_time = time.time()
+        total_time = end_time - start_time
+        print(f"Total time taken: {total_time:.2f} seconds")
     except Exception as e:
         print(f"Error copying data: {e}")
-
 
 
 # Example usage
