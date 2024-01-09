@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import subprocess
 import os
 import time
@@ -103,10 +104,12 @@ if __name__ == "__main__":
     
     # Check if at least two drives are connected
     if len(connected_drives) >= 2:
-        # Set up logging
+        # Set up logging in the 'log' folder within the script's directory
+        log_folder_path = os.path.join(os.getcwd(), 'log')
+        os.makedirs(log_folder_path, exist_ok=True)
+
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        log_file_path = os.path.join(os.getcwd(), 'log', f"log_{timestamp}.txt")
-        os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+        log_file_path = os.path.join(log_folder_path, f"log_{timestamp}.txt")
         setup_logger(log_file_path)
 
         logging.info("Connected USB drives:")
