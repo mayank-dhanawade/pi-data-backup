@@ -78,20 +78,25 @@ def rsync_copy_data(source_drive, destination_folder):
 if __name__ == "__main__":
     # Example usage
     connected_drives = get_connected_drives()
-    print("Connected USB drives:")
-    for drive_info in connected_drives:
-        print(drive_info)
+    
+    # Check if at least two drives are connected
+    if len(connected_drives) >= 2:
+        print("Connected USB drives:")
+        for drive_info in connected_drives:
+            print(drive_info)
 
-    drive_storage_info = get_drive_storage(connected_drives)
-    print("Storage information for each connected USB drive:")
-    for drive_info in drive_storage_info:
-        print(f"Drive: {drive_info[0]}, Mount Point: {drive_info[1]}, Total Storage: {drive_info[2] / (1024 ** 3):.2f} GB")
+        drive_storage_info = get_drive_storage(connected_drives)
+        print("Storage information for each connected USB drive:")
+        for drive_info in drive_storage_info:
+            print(f"Drive: {drive_info[0]}, Mount Point: {drive_info[1]}, Total Storage: {drive_info[2] / (1024 ** 3):.2f} GB")
 
-    largest_drive_info = max(drive_storage_info, key=lambda x: x[2])
-    create_spiti_folder(largest_drive_info)
+        largest_drive_info = max(drive_storage_info, key=lambda x: x[2])
+        create_spiti_folder(largest_drive_info)
 
-    spiti_folder_path = os.path.join(largest_drive_info[1], 'spiti')
-    card_folder_path = create_card_folder(spiti_folder_path)
+        spiti_folder_path = os.path.join(largest_drive_info[1], 'spiti')
+        card_folder_path = create_card_folder(spiti_folder_path)
 
-    smallest_drive_info = min(drive_storage_info, key=lambda x: x[2])
-    rsync_copy_data(smallest_drive_info[1], card_folder_path)
+        smallest_drive_info = min(drive_storage_info, key=lambda x: x[2])
+        rsync_copy_data(smallest_drive_info[1], card_folder_path)
+    else:
+        print("At least two USB drives are required for the operation.")
