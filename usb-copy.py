@@ -104,7 +104,7 @@ def main():
     os.makedirs(log_folder_path, exist_ok=True)
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    log_file_path = os.path.join(log_folder_path, f"log_{timestamp}.txt")
+    log_file_path = os.path.join('/home/mayank/workspace/pi-data-backup/log', f"log_{timestamp}.txt")
     setup_logger(log_file_path)
     logging.info("Starting wait for connected drives:")
 
