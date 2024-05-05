@@ -2,28 +2,6 @@
 import subprocess
 import os
 import time
-import logging
-
-def setup_logger(log_file_path):
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
-    # Create a file handler and set the level to debug
-    fh = logging.FileHandler(log_file_path)
-    fh.setLevel(logging.DEBUG)
-
-    # Create a console handler and set the level to debug
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-
-    # Create a formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(fh)
-    logger.addHandler(ch)
 
 def get_connected_drives():
     connected_drives = set()
@@ -40,7 +18,7 @@ def get_connected_drives():
                 connected_drives.add((drive_name, mount_point))
 
     except subprocess.CalledProcessError as e:
-        logging.error(f"Error executing lsblk: {e}")
+        print(f"Error executing lsblk: {e}")
 
     return list(connected_drives)
 
@@ -52,21 +30,21 @@ def get_drive_storage(drives):
             usage = int(usage.decode('utf-8').split('\n')[1]) * 1024  # Convert to bytes
             drive_storage_info.append((drive_info[0], drive_info[1], usage))
         except subprocess.CalledProcessError as e:
-            logging.error(f"Error getting disk usage for {drive_info[1]}: {e}")
+            print(f"Error getting disk usage for {drive_info[1]}: {e}")
 
     return drive_storage_info
 
-def create_spiti_folder(drive_info):
-    spiti_folder_path = os.path.join(drive_info[1], 'spiti')
+def create_trip_folder(drive_info):
+    trip_folder_path = os.path.join(drive_info[1], 'trip')
 
     try:
-        os.makedirs(spiti_folder_path, exist_ok=True)
-        logging.info(f"Folder 'spiti' created successfully at {spiti_folder_path}")
+        os.makedirs(trip_folder_path, exist_ok=True)
+        print(f"Folder 'trip' created successfully at {trip_folder_path}")
     except Exception as e:
-        logging.error(f"Error creating folder 'spiti': {e}")
+        print(f"Error creating folder 'trip': {e}")
 
-def create_card_folder(spiti_folder_path):
-    existing_card_folders = [folder for folder in os.listdir(spiti_folder_path) if folder.startswith('card-')]
+def create_card_folder(trip_folder_path):
+    existing_card_folders = [folder for folder in os.listdir(trip_folder_path) if folder.startswith('card-')]
     existing_card_numbers = [int(folder.split('-')[1]) for folder in existing_card_folders]
 
     if existing_card_numbers:
@@ -75,60 +53,47 @@ def create_card_folder(spiti_folder_path):
         next_card_number = 1
 
     new_card_folder = f"card-{next_card_number}"
-    new_card_folder_path = os.path.join(spiti_folder_path, new_card_folder)
+    new_card_folder_path = os.path.join(trip_folder_path, new_card_folder)
 
     try:
         os.makedirs(new_card_folder_path, exist_ok=True)
-        logging.info(f"Folder '{new_card_folder}' created successfully at {new_card_folder_path}")
+        print(f"Folder '{new_card_folder}' created successfully at {new_card_folder_path}")
     except Exception as e:
-        logging.error(f"Error creating folder '{new_card_folder}': {e}")
+        print(f"Error creating folder '{new_card_folder}': {e}")
 
     return new_card_folder_path
 
 def rsync_copy_data(source_drive, destination_folder):
-    start_time = time.time()
-
     try:
-        subprocess.run(['rsync', '-a', '--info=progress2', source_drive + '/', destination_folder])
-        logging.info(f"Data copied successfully to {destination_folder}")
-
-        end_time = time.time()
-        total_time = end_time - start_time
-        logging.info(f"Total time taken: {total_time:.2f} seconds")
+        subprocess.run(['rsync', '-a', '--info=progress2', source_drive + '/', destination_folder], check=True)
+        print(f"\nData copied successfully to {destination_folder}")
     except subprocess.CalledProcessError as e:
-        logging.error(f"Error copying data: {e}")
+        print(f"\nError copying data: {e}")
 
 def main():
-    # Set up logging in the 'log' folder within the script's directory
-    log_folder_path = os.path.join(os.getcwd(), 'log')
-    os.makedirs(log_folder_path, exist_ok=True)
-
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-    log_file_path = os.path.join('/home/mayank/workspace/pi-data-backup/log', f"log_{timestamp}.txt")
-    setup_logger(log_file_path)
-    logging.info("Starting wait for connected drives:")
+    print("Starting wait for connected drives:")
 
     while True:
-        logging.info("Waiting for drives")
+        print("Waiting for drives")
         connected_drives = get_connected_drives()
 
         # Check if at least two drives are connected
         if len(connected_drives) >= 2:
             
-            logging.info("Connected USB drives:")
+            print("Connected USB drives:")
             for drive_info in connected_drives:
-                logging.info(drive_info)
+                print(drive_info)
 
             drive_storage_info = get_drive_storage(connected_drives)
-            logging.info("Storage information for each connected USB drive:")
+            print("Storage information for each connected USB drive:")
             for drive_info in drive_storage_info:
-                logging.info(f"Drive: {drive_info[0]}, Mount Point: {drive_info[1]}, Total Storage: {drive_info[2] / (1024 ** 3):.2f} GB")
+                print(f"Drive: {drive_info[0]}, Mount Point: {drive_info[1]}, Total Storage: {drive_info[2] / (1024 ** 3):.2f} GB")
 
             largest_drive_info = max(drive_storage_info, key=lambda x: x[2])
-            create_spiti_folder(largest_drive_info)
+            create_trip_folder(largest_drive_info)
 
-            spiti_folder_path = os.path.join(largest_drive_info[1], 'spiti')
-            card_folder_path = create_card_folder(spiti_folder_path)
+            trip_folder_path = os.path.join(largest_drive_info[1], 'trip')
+            card_folder_path = create_card_folder(trip_folder_path)
 
             smallest_drive_info = min(drive_storage_info, key=lambda x: x[2])
             rsync_copy_data(smallest_drive_info[1], card_folder_path)
@@ -136,7 +101,7 @@ def main():
             # Exit the script after completing the operations
             break
         
-        logging.info("Sleep for 5 sec")
+        print("Sleep for 5 sec")
         # Wait for a short duration before checking again
         time.sleep(5)
 
